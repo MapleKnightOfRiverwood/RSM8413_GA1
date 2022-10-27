@@ -25,26 +25,17 @@ if __name__ == "__main__":  # Main class
         percentageMissing = (((dataset[columnName] == " ").sum())/len(dataset[columnName]))*100
         print(columnName + " has " + str(round(percentageMissing, 2)) + "% of data missing.")
 
-    # Remove all column with more than 10% of data missing
-    for columnName in columnWithMissingValue:  # Check percentage of data missing
-        percentageMissing = (((dataset[columnName] == " ").sum())/len(dataset[columnName]))*100
-        if percentageMissing > 10:
-            dataset.drop(columnName, axis="columns", inplace=True)
+    # Replace all missing values with "N/A"
+    dataset.replace(" ", "N/A", inplace=True)
 
-    # Remove all rows with missing value
-    rowWithoutMissingValue = []
     n = 0
-    while n <= len(dataset.index) - 1:
-        hasMissing = 0
-        for feature in dataset.loc[n]:
-            if feature == " ":
-                hasMissing = 1
-        if hasMissing == 1:
-            rowWithoutMissingValue.append(False)
+    while n <= len(dataset["RecordNo"]) - 1:
+        countryCode = dataset.loc[n, "RecordNo"][0] + dataset.loc[n, "RecordNo"][1] + dataset.loc[n, "RecordNo"][2]
+        if countryCode == "CAN":
+            dataset.loc[n, "RecordNo"] = "CAN"
         else:
-            rowWithoutMissingValue.append(True)
+            dataset.loc[n, "RecordNo"] = "USA"
         n = n + 1
-    dataset = dataset[rowWithoutMissingValue]
 
     # Check column types for possible inaccuracy error
     print(dataset.dtypes)  # household_size and household_children are string instead of int
@@ -54,13 +45,10 @@ if __name__ == "__main__":  # Main class
     # in household_size and household_children features, there are a lot of _NA_ in i14_health_other, and
     # "RecordNo" column is not useful since it is identical with index column
 
-    # Remove RecordNo column
-    dataset.drop("RecordNo", axis="columns", inplace=True)
-
     # Check percentage of wrong values in i14_health_other
     i14ho_percentageWrong = (((dataset["i14_health_other"] == "__NA__").sum())/len(dataset["i14_health_other"]))*100
     print("i14_health_other has " + str(round(i14ho_percentageWrong, 2)) + "% of data missing.")
-    # Since more than 92.42% of data is missing, we remove the column
+    # Since more than 92.42% of data is missing, and it is unstructured, we remove the column
     dataset.drop("i14_health_other", axis="columns", inplace=True)
 
     # Change "# and more" to "#"
@@ -215,13 +203,12 @@ if __name__ == "__main__":  # Main class
     dataset.drop("endtime", axis="columns", inplace=True)
     # Rearrange columns
     cols = dataset.columns.tolist()
-    cols = [cols[0]] + [cols[len(cols) - 3]] + [cols[len(cols) - 2]] + [cols[1]] + [cols[len(cols) - 1]] + cols[2:(len(cols) - 3)]
+    cols = [cols[0]] + [cols[len(cols) - 3]] + [cols[len(cols) - 2]] + [cols[2]] + [cols[len(cols) - 1]] + [cols[1]] + cols[3:(len(cols) - 3)]
     dataset = dataset[cols]
     # Drop Index column
     dataset.drop("Index", axis="columns", inplace=True)
     # Output the cleaned dataset to csv
     dataset.to_csv("COVID_Data_Cleaned.csv", index=False)
-
 
 
 
