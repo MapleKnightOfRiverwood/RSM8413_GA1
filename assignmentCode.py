@@ -355,7 +355,243 @@ if __name__ == "__main__":  # Main class
     print("Model false positive rate is: " + str(round(output[5], 4) * 100) + "%")
     print("Model false negative rate is: " + str(round(output[6], 4) * 100) + "%")
 
+#------------------------------ EDA for Model 2 - Predicting Willingness to Isolate ---------------------
 
+df = pd.read_csv('COVID_Data_Cleaned.csv')
+#explore head of dataframe
+df.head()
+
+#identify how many interviewees are from Canada and US
+df['RecordNo'].value_counts().plot(kind='bar')
+
+#identify regions where there is a higher amount of interviewees
+df['state_province'] = df['region_state'].str.split('/').str[0]
+
+df['state_province'].value_counts().head(10).plot(kind='barh')
+
+df['state_province'].value_counts().tail(10).plot(kind = 'barh')
+
+#i9_health is the target variable - ensuring there is a decent amount of "Nos"
+df['i9_health'].value_counts().plot(kind='bar')
+
+#Age vs. willingness to isolate
+sns.boxplot(x=df['i9_health'], y=df['age'])
+plt.xticks(rotation = 90)
+plt.xlabel("Willingness to Self-Isolate")
+
+
+#Household size vs. willingness to isolate
+sns.boxplot(x=df['i9_health'], y=df['household_size'])
+plt.xticks(rotation = 90)
+plt.xlabel("Willingness to Self-Isolate")
+
+#Household children vs. willingness to isolate
+sns.boxplot(x=df['i9_health'], y=df['household_children'])
+plt.xticks(rotation = 90)
+plt.xlabel("Willingness to Self-Isolate")
+
+
+#house-hold_size vs. number of people in your house you have come in contact with
+sns.scatterplot(x=df['household_size'], y=df['i1_health'], hue=df['i9_health'])
+plt.ylabel('# of household members come in contact')
+plt.legend(bbox_to_anchor=(1.05, 1))
+
+#not expecting people to say they have come in contact with 1000 people in their house
+df['i1_health'].max()
+
+#number of people in you've come in contact with in your household should not exceed your household size?
+plt.boxplot(df['i2_health'])
+
+#looks like there are many outliers, for example coming into contact with 1000 people in your house
+df.plot(kind = 'box', subplots = True, layout = (3,4), 
+             sharex=False, sharey=False, fontsize=12, figsize = (18,10))
+
+#plotting boxplots just with abnormal results
+df[['i1_health','i2_health', 'i7a_health', 'i13_health', 'weight']].plot(kind = 'box', subplots = True, layout = (2,3), 
+             sharex=False, sharey=False, fontsize=12, figsize = (18,10))
+
+#percent of willingness to isolate based on cough
+g = sns.countplot(df['i9_health'], hue = df['i5_health_1'])
+plt.xlabel('Willingness to Isolate')
+plt.legend(title = 'Cough?')
+plt.show(g)
+pd.crosstab(df['i5_health_1'], df['i9_health'], normalize = 'index', rownames = ['Cough?'], colnames = ['Willingness to Isolate'])
+
+#plotting essentially a cross-tab analysis, no differences here so will do this moving forward
+counts = (df.groupby(['i5_health_1'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'i5_health_1', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Cough?')
+
+#plotting willingness to isolate based on whether individual has a fever
+counts = (df.groupby(['i5_health_2'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'i5_health_2', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Fever?')
+
+#plotting willingness to isolate based on whether individual has a loss of smell
+counts = (df.groupby(['i5_health_3'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'i5_health_3', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Loss of Smell?')
+
+
+#plotting willingness to isolate based on whether individual has a loss of taste
+counts = (df.groupby(['i5_health_4'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'i5_health_4', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Loss of Taste?')
+
+#plotting willingness to isolate based on whether individual has difficult breathing
+counts = (df.groupby(['i5_health_5'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'i5_health_5', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Difficulty Breathing?')
+
+#plotting willingness to isolate based on an individual's ease of isolation
+counts = (df.groupby(['i10_health'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'i10_health', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Ease of Isolating?',bbox_to_anchor=(1.05, 1))
+
+#plotting willingness to isolate based on whether an individual wears a mask
+counts = (df.groupby(['i12_health_1'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'i12_health_1', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Wear Mask?', bbox_to_anchor=(1.33, 1))
+
+#plotting willingness to isolate based on whether an individual uses soap when washing hands
+counts = (df.groupby(['i12_health_2'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'i12_health_2', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Use Soap?',bbox_to_anchor=(1.33, 1))
+
+#plotting willingness to isolate based on an individual uses hand sanitizer
+counts = (df.groupby(['i12_health_3'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'i12_health_3', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Use Sanitizer?',bbox_to_anchor=(1.33, 1))
+
+
+#plotting willingness to isolate based on an individual covers their mouth when they cough
+counts = (df.groupby(['i12_health_4'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'i12_health_4', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Cover When Cough?',bbox_to_anchor=(1.33, 1))
+
+#plotting willingness to isolate based on an individual avoids people who have been exposed to COVID
+counts = (df.groupby(['i12_health_5'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'i12_health_5', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Avoid Ppl Exposed to COVID?',bbox_to_anchor=(1.33, 1))
+
+#plotting willingness to isolate based on an individual avoids going out of the house
+counts = (df.groupby(['i12_health_6'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'i12_health_6', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Avoid Going Out?',bbox_to_anchor=(1.33, 1))
+
+#plotting willingness to isolate based on an individual avoids public transport
+counts = (df.groupby(['i12_health_7'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'i12_health_7', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Avoid Public Transport?',bbox_to_anchor=(1.33, 1))
+
+#plotting willingness to isolate based on an individual avoids having guest over
+counts = (df.groupby(['i12_health_11'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'i12_health_11', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Avoid Having Guest Over?',bbox_to_anchor=(1.05, 1))
+
+#plotting willingness to isolate based on an individual avoids small gatherings
+counts = (df.groupby(['i12_health_12'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'i12_health_12', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Avoid Small Gatherings?',bbox_to_anchor=(1.05, 1))
+
+#plotting willingness to isolate based on an individual avoids large gatherings
+counts = (df.groupby(['i12_health_14'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'i12_health_14', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Avoid Large Gthrings?',bbox_to_anchor=(1.05, 1))
+
+#plotting willingness to isolate based on an individual avoids crowded areas (similar to large gatherings)
+counts = (df.groupby(['i12_health_15'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'i12_health_15', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Avoid Crowded Areas?',bbox_to_anchor=(1.05, 1))
+
+#plotting willingness to isolate based on an individual avoids touching public objects
+counts = (df.groupby(['i12_health_20'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'i12_health_20', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Avoid touching public objects?',bbox_to_anchor=(1.05, 1))
+
+#number of times wash hands vs. willingness to isolate
+sns.boxplot(x=df['i9_health'], y=df['i13_health'])
+plt.xticks(rotation = 90)
+plt.xlabel("Willingness to Self-Isolate")
+# many outliers, no one washes 1000 times?
+
+#plotting willingness to isolate based on an individual says no to all health issues
+counts = (df.groupby(['d1_health_99'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'd1_health_99', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'No to all health issues?',bbox_to_anchor=(1.05, 1))
+
+#plotting willingness to isolate based on an individual household size
+counts = (df.groupby(['household_size'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'household_size', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Household size?',bbox_to_anchor=(1.05, 1))
+
+#plotting willingness to isolate based on an individual's household children size
+counts = (df.groupby(['household_children'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'household_children', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Household Children?',bbox_to_anchor=(1.05, 1))
+
+#plotting willingness to isolate based on an individual's employment status
+counts = (df.groupby(['employment_status'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'employment_status', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Employment Status?',bbox_to_anchor=(1.05, 1))
+
+#plotting willingness to isolate based on an individual has any symptoms
+counts = (df.groupby(['i5_health_99'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'i5_health_99', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Any symptoms?',bbox_to_anchor=(1, 1))
+
+#plotting willingness to isolate based on an individual has any pre-existing health conditions
+counts = (df.groupby(['d1_health_99'])['i9_health'].value_counts(normalize = True).rename('percentage')
+         .mul(100).reset_index())
+sns.barplot(x = 'i9_health', y ='percentage', hue = 'd1_health_99', data = counts)
+plt.xlabel('Willing to Isolate?')
+plt.legend(title = 'Any symptoms?',bbox_to_anchor=(1, 1))
 
 
 
