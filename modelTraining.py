@@ -48,6 +48,7 @@ if __name__ == "__main__":
 
     # How is target distributed
     posNegData["i3_health"].value_counts().plot(kind="bar", title="COVID")
+    plt.xticks(rotation="horizontal")
     plt.show()
 
     # Correlation matrix for numerical variables

@@ -7,7 +7,12 @@ if __name__ == "__main__":  # Main class
     pd.options.display.max_columns = None  # Do not hide column info
     pd.options.display.max_rows = None  # Do not hide row info
 
+    # Dataset preview
+    dataset.shape
+    dataset.dtypes
+
     # Data preparation and wrangling
+    dataset.shape
 
     # Check for missing values
     columnWithMissingValue = []
@@ -26,7 +31,7 @@ if __name__ == "__main__":  # Main class
         print(columnName + " has " + str(round(percentageMissing, 2)) + "% of data missing.")
 
     # Replace all missing values with "N/A"
-    dataset.replace(" ", "N/A", inplace=True)
+    dataset.replace(" ", "Not_Applicable", inplace=True)
 
     n = 0
     while n <= len(dataset["RecordNo"]) - 1:
@@ -150,7 +155,7 @@ if __name__ == "__main__":  # Main class
     min(hc_y_test)  # Make sure the min value is not less than 0
     hc_y_test = hc_y_test.round(decimals=0).astype("int64")  # Round and change type to integer
     hc_testDataset_noDummy["household_children"] = hc_y_test  # Add prediction result to test data set
-    # Combine  no dummy test dataset and no dummy training dataset to obtain new dataset
+    # Combine no dummy test dataset and no dummy training dataset to obtain new dataset
     hc_dataset = pd.concat([hc_trainingDataset_noDummy, hc_testDataset_noDummy])
     hc_dataset.sort_values("Index", inplace=True)
     hc_dataset
@@ -209,6 +214,23 @@ if __name__ == "__main__":  # Main class
     dataset.drop("Index", axis="columns", inplace=True)
     # Output the cleaned dataset to csv
     dataset.to_csv("COVID_Data_Cleaned.csv", index=False)
+
+    # Change all object type to string type
+    for columnName in dataset:
+        if dataset[columnName].dtype == "object":
+            dataset[columnName] = dataset[columnName].astype("string")  # Change all object type to string
+    a = dataset.dtypes
+    # Print a table of column types
+    n = 0
+    for item in a:
+        print(a.index[n] + " : " + str(item) + ", ", end="")
+        if (n + 8) % 7 == 0:
+            print("")
+        n = n + 1
+
+
+
+
 
 
 
